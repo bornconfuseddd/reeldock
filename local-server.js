@@ -1,15 +1,19 @@
 // local-server.js
 //
-// A free helper program that runs on YOUR computer only — no signup,
-// no API key, no cost. It does two jobs:
+// A free helper program — no signup, no API key, no cost. It does two jobs:
 //   1. Shows your website (index.html, styles.css, app.js) in the browser.
-//   2. When the website asks for a Reel, it asks yt-dlp to go fetch the
-//      real video link, and later streams the actual video file back.
+//   2. When the website asks for a Reel, it asks yt-dlp to fetch a quick
+//      preview (thumbnail/caption), and later actually downloads the
+//      real video — merging separate audio+video streams with ffmpeg
+//      when Instagram doesn't provide one single combined file.
 //
-// You need:
+// You need, sitting in this same folder:
 //   - Node.js installed (18 or newer)
-//   - The yt-dlp program sitting in this same folder
-//     (yt-dlp.exe on Windows, or "yt-dlp" on Mac/Linux)
+//   - yt-dlp (yt-dlp.exe on Windows, or "yt-dlp" on Mac/Linux/Render)
+//   - ffmpeg (ffmpeg.exe on Windows, or "ffmpeg" on Mac/Linux/Render) —
+//     only needed for Step 2, to merge audio+video when they're separate.
+//     If it's missing, yt-dlp will still try your system's own ffmpeg
+//     (if you have one on your PATH).
 //
 // To run it: open a terminal in this folder and type:
 //   node local-server.js
@@ -17,12 +21,20 @@
 
 const http = require("http");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
+const crypto = require("crypto");
 const { execFile } = require("child_process");
 
 const PORT = process.env.PORT || 8787;
 const ROOT = __dirname;
 const YTDLP = process.platform === "win32" ? "yt-dlp.exe" : "./yt-dlp";
+
+// If a local ffmpeg binary sits right next to this file (that's what our
+// Render Build Command downloads), tell yt-dlp exactly where it is.
+// Otherwise, leave it out and let yt-dlp look for one on the system PATH.
+const FFMPEG_PATH = path.join(ROOT, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+const HAS_LOCAL_FFMPEG = fs.existsSync(FFMPEG_PATH);
 
 const MIME = {
   ".html": "text/html",
@@ -39,27 +51,14 @@ const server = http.createServer((req, res) => {
   return serveStatic(url.pathname, res);
 });
 
-// -------- Step 1: ask yt-dlp for the real video link --------
+// -------- Step 1: quick preview only (thumbnail/caption) --------
 function handleResolve(url, res) {
   const reelUrl = url.searchParams.get("url");
   if (!reelUrl) return sendJson(res, 400, { message: "Missing url" });
 
   execFile(
     YTDLP,
-    [
-      "-j",
-      "--no-warnings",
-      // Without this, yt-dlp's default picks the best *video-only*
-      // stream when a site (like Instagram) also offers a separate
-      // audio-only one — meant to be merged by a downloader, which we
-      // aren't doing. That produced a "video" with no sound on PC, and
-      // on iPhone, a broken-looking file with no thumbnail (since it's
-      // not a normal, complete video file). "best" forces a single
-      // format that already has both audio and video combined.
-      "-f",
-      "best",
-      reelUrl,
-    ],
+    ["-j", "--no-warnings", reelUrl],
     { maxBuffer: 1024 * 1024 * 20 },
     (err, stdout) => {
       if (err) {
@@ -70,14 +69,7 @@ function handleResolve(url, res) {
       }
       try {
         const data = JSON.parse(stdout);
-        // Prints straight to Render's Logs tab (or your terminal locally).
-        // This is how we can tell FOR SURE whether the chosen format
-        // actually has audio, instead of guessing from symptoms alone.
-        console.log(
-          `Resolved format: vcodec=${data.vcodec} acodec=${data.acodec} format_id=${data.format_id}`
-        );
         sendJson(res, 200, {
-          videoUrl: data.url,
           thumbnail: data.thumbnail || "",
           caption: data.description || data.title || "",
           filename: "reel.mp4",
@@ -89,47 +81,69 @@ function handleResolve(url, res) {
   );
 }
 
-// -------- Step 2: hand the actual video bytes to the browser --------
+// -------- Step 2: actually download the video --------
+// Instagram sometimes serves a Reel as two separate files — a video-only
+// stream and an audio-only stream — meant to be combined by a downloader.
+// Grabbing just "the video URL" (like Step 1 does for a quick preview)
+// can silently give you the video-only half, which plays with no sound
+// on some players and doesn't even preview at all on others (like an
+// iPhone's Files app). So for the REAL download, we let yt-dlp do what
+// it's actually designed for: fetch both pieces and merge them into one
+// normal video file with ffmpeg, before handing it to the browser.
 async function handleDownload(url, res) {
-  const src = url.searchParams.get("src");
+  const reelUrl = url.searchParams.get("src"); // the original Reel link
   const name = url.searchParams.get("name") || "reel.mp4";
-  if (!src) return sendJson(res, 400, { message: "Missing src" });
+  if (!reelUrl) return sendJson(res, 400, { message: "Missing src" });
 
-  try {
-    // Instagram/Facebook's CDN often 403s a request that doesn't look
-    // like it came from a browser (no Referer/User-Agent) — that error
-    // page is tiny, and without the checks below it would get saved as
-    // if it were the actual video.
-    const upstream = await fetch(src, {
-      headers: {
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        referer: "https://www.instagram.com/",
-      },
-    });
+  const tempPath = path.join(os.tmpdir(), `reeldock-${crypto.randomUUID()}.mp4`);
+  const cleanup = () => fs.unlink(tempPath, () => {});
 
-    if (!upstream.ok || !upstream.body) {
-      console.error(`Upstream video fetch failed: ${upstream.status} ${upstream.statusText}`);
+  const args = [
+    "--no-warnings",
+    "--no-progress",
+    // Best video + best audio, merged into a single mp4. If a Reel only
+    // ever offers one combined format anyway, this just picks that one —
+    // no separate merge needed in that case, same result either way.
+    "-f",
+    "bv*+ba/b",
+    "--merge-output-format",
+    "mp4",
+    "-o",
+    tempPath,
+  ];
+  if (HAS_LOCAL_FFMPEG) args.push("--ffmpeg-location", FFMPEG_PATH);
+  args.push(reelUrl);
+
+  execFile(YTDLP, args, { maxBuffer: 1024 * 1024 * 20 }, (err, _stdout, stderr) => {
+    if (err) {
+      console.error("yt-dlp download/merge failed:", err.message, stderr || "");
+      cleanup();
       return sendJson(res, 502, {
-        message: `Couldn't fetch the video from Instagram's server (status ${upstream.status}). The link may have expired — try fetching the Reel again.`,
+        message: "Couldn't download that video. The link may have expired — try fetching the Reel again.",
       });
     }
 
-    res.writeHead(200, {
-      "content-type": upstream.headers.get("content-type") || "video/mp4",
-      "content-disposition": buildContentDisposition(name),
+    fs.stat(tempPath, (statErr, stats) => {
+      if (statErr || !stats || stats.size < 1024) {
+        cleanup();
+        return sendJson(res, 502, { message: "The downloaded file looks broken. Please try again." });
+      }
+
+      res.writeHead(200, {
+        "content-type": "video/mp4",
+        "content-length": stats.size,
+        "content-disposition": buildContentDisposition(name),
+      });
+
+      const readStream = fs.createReadStream(tempPath);
+      readStream.pipe(res);
+      readStream.on("close", cleanup);
+      readStream.on("error", (streamErr) => {
+        console.error("Error streaming merged file:", streamErr.message);
+        cleanup();
+      });
     });
-    const reader = upstream.body.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      res.write(value);
-    }
-    res.end();
-  } catch (e) {
-    console.error(e.message);
-    sendJson(res, 502, { message: "Download failed." });
-  }
+  });
 }
 
 // -------- Just serves your HTML/CSS/JS files as normal --------
@@ -173,4 +187,5 @@ function buildContentDisposition(name) {
 
 server.listen(PORT, () => {
   console.log(`ReelDock test server running — open http://localhost:${PORT}`);
+  console.log(HAS_LOCAL_FFMPEG ? `Using local ffmpeg at ${FFMPEG_PATH}` : "No local ffmpeg found — relying on system PATH.");
 });
