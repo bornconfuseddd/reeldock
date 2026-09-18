@@ -85,7 +85,13 @@ async function resolveReel(url) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || "Couldn't resolve that link.");
   }
-  return res.json(); // expected: { videoUrl, thumbnail, caption, filename }
+  const data = await res.json();
+  // The download step needs the original Instagram link (not just the
+  // raw video URL) so the server can re-run yt-dlp against it to merge
+  // separate audio+video streams when Instagram doesn't provide one
+  // single combined file.
+  data.reelUrl = url;
+  return data;
 }
 
 function showResult(data) {
@@ -297,7 +303,7 @@ async function prepareDownload(data, signal) {
     } catch {
       safeName = encodeURIComponent("reel.mp4");
     }
-    src = `/api/download?src=${encodeURIComponent(data.videoUrl)}&name=${safeName}`;
+    src = `/api/download?src=${encodeURIComponent(data.reelUrl)}&name=${safeName}`;
   }
 
   const res = await fetch(src, { signal });
