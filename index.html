@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>ReelDock — Save Instagram Reels as MP4</title>
+<meta name="description" content="Paste an Instagram Reel link and save the video to your device in original quality. No login, no app, no watermark.">
+<meta property="og:title" content="ReelDock — Save Instagram Reels as MP4">
+<meta property="og:description" content="Paste an Instagram Reel link and save the video to your device in original quality. No login, no app, no watermark.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%234f46e5%22/><path d=%22M8 7v10l9-5-9-5z%22 fill=%22%23fff%22/></svg>">
+<link rel="stylesheet" href="./styles.css">
+</head>
+
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen selection:bg-indigo-500 selection:text-white">
+<div class="flex flex-col min-h-screen">
+
+  <!-- ============ HEADER ============ -->
+  <header class="w-full bg-white/90 backdrop-blur-md border-b border-slate-200 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="flex items-center gap-2 group">
+          <div class="flex items-center">
+            <svg class="w-7 h-7 text-indigo-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 6H2M3 9H1" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            <div class="text-xl sm:text-2xl font-black tracking-tighter text-slate-900 leading-none">Reel<span class="text-gradient">Dock</span></div>
+          </div>
+        </a>
+        <ul class="flex items-center gap-3 sm:gap-4">
+          <li><a href="/" class="flex items-center group/nav transition-all duration-300 text-indigo-600">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-indigo-50 text-indigo-600"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></div>
+            <span class="hidden sm:inline ml-2 font-bold text-sm tracking-tight">Reels</span></a></li>
+          <li><a href="#how-it-works" class="flex items-center group/nav transition-all duration-300 text-slate-500 hover:text-slate-900">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-transparent text-slate-400 group-hover/nav:bg-slate-50 group-hover/nav:text-slate-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg></div>
+            <span class="hidden sm:inline ml-2 font-bold text-sm tracking-tight">How it works</span></a></li>
+          <li><a href="#faq" class="flex items-center group/nav transition-all duration-300 text-slate-500 hover:text-slate-900">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-transparent text-slate-400 group-hover/nav:bg-slate-50 group-hover/nav:text-slate-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" /><circle cx="6.5" cy="22" r="0.9" /><circle cx="4" cy="23.2" r="0.5" /></svg></div>
+            <span class="hidden sm:inline ml-2 font-bold text-sm tracking-tight">FAQ</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="flex-grow">
+    <div class="relative overflow-hidden">
+      <div id="hero-bg" class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <main class="relative px-4 py-6 md:py-12 max-w-5xl mx-auto flex flex-col items-center">
+
+        <!-- ---- HERO ---- -->
+        <div class="text-center w-full max-w-3xl mb-12">
+          <h1 id="hero-h1" class="text-2xl sm:text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight sm:mb-6 text-slate-900 drop-shadow-sm"><span class="text-gradient">Instagram Reels</span> Downloader</h1>
+          <p id="hero-p" class="text-sm md:text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">Paste the link and save the video to your device: <br> No Logo | Original Quality
+            | Unlimited</p>
+
+          <div class="w-full max-w-2xl mx-auto">
+            <form id="resolve-form" autocomplete="off" class="group relative flex items-center w-full max-w-2xl mx-auto p-1 bg-white backdrop-blur-md border rounded-full transition-all duration-300 shadow-indigo-900/5 border-indigo-200 focus-within:border-indigo-500">
+              <div class="flex items-center justify-center pl-4 pr-2 transition-colors duration-300 text-slate-400 group-focus-within:text-indigo-500"><svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" /></svg></div>
+              <label class="sr-only" for="reel-url">Instagram Reel link</label>
+              <input id="reel-url" type="url" name="url" inputmode="url" placeholder="Paste Link Here..." class="flex-1 bg-transparent placeholder-slate-400 font-medium h-14 px-2 text-base md:text-lg focus:outline-none w-full transition-colors text-slate-900" required>
+              <div class="flex items-center gap-2 pr-1">
+                <button id="resolve-btn" type="submit" class="flex items-center justify-center gap-2 px-6 h-12 font-semibold rounded-full transition-all duration-300 bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] whitespace-nowrap" aria-label="Get video">Get video</button>
+              </div>
+            </form>
+
+            <p id="form-error" class="form-error mt-4 text-sm font-semibold text-pink-600 bg-pink-50 border border-pink-100 rounded-2xl px-4 py-3" role="alert" hidden></p>
+
+            <div class="flex justify-center mt-4">
+              <p class="text-xs text-slate-400 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Public Reels only — no login needed</p>
+            </div>
+
+            <!-- ---- RESULT CARD ---- -->
+            <div id="result" class="result-card glass-panel mt-6 p-4 sm:p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left" hidden>
+              <img id="result-thumb" alt="" width="120" height="120" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border border-slate-200 flex-shrink-0">
+              <div class="flex-1 w-full">
+                <p id="result-caption" class="text-sm text-slate-600 leading-relaxed mb-2 whitespace-pre-line"></p>
+                <p id="result-tags" class="text-xs font-semibold text-indigo-600 leading-relaxed mb-4" hidden></p>
+                <button id="download-btn" type="button" class="flex items-center justify-center gap-2 px-6 h-12 font-semibold rounded-full transition-all duration-300 bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] w-full sm:w-auto">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  <span>Download video</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 mt-6 max-w-xl mx-auto leading-relaxed">ReelDock is a free and fast online tool which helps you to
+            download Instagram reels video or to save reels video to your
+            device. You can save any reels video to your phone or computer
+            and view it offline anytime.</p>
+        </div>
+
+        <!-- ---- BODY CONTENT ---- -->
+        <div id="maintext" class="w-full">
+
+          <!-- Steps -->
+          <div id="how-it-works" class="w-full mt-24 mb-12">
+            <div class="text-center mb-12">
+              <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">Steps to Download Reels From Instagram</h2>
+              <p class="text-slate-600 max-w-2xl mx-auto">Here's a quick and easy way to do it:</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
+              <div class="hidden md:block absolute top-12 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent z-0"></div>
+              <div class="relative z-10 flex flex-col items-center text-center p-4 rounded-2xl hover:bg-white/40 transition-colors duration-300"><div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-xl font-bold text-indigo-600 mb-4 shadow-sm">1</div> <p class="text-sm text-slate-600 font-medium">Copy Link of the reel.</p></div>
+              <div class="relative z-10 flex flex-col items-center text-center p-4 rounded-2xl hover:bg-white/40 transition-colors duration-300"><div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-xl font-bold text-purple-600 mb-4 shadow-sm">2</div> <p class="text-sm text-slate-600 font-medium">Paste Link into Input box.</p></div>
+              <div class="relative z-10 flex flex-col items-center text-center p-4 rounded-2xl hover:bg-white/40 transition-colors duration-300"><div class="w-16 h-16 rounded-full bg-white border-2 border-pink-200 flex items-center justify-center text-xl font-bold text-pink-600 mb-4 shadow-sm">3</div> <p class="text-sm text-slate-600 font-medium">Tap "Download Video" button.</p></div>
+            </div>
+          </div>
+
+          <div class="w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-20 mx-auto"></div>
+
+          <div class="max-w-4xl mx-auto space-y-12 mb-24">
+
+            <!-- How it works panel -->
+            <div class="glass-panel p-8 sm:p-10 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                  <h3 class="text-2xl sm:text-3xl font-bold text-slate-900">How ReelDock Works?</h3>
+                  <p class="text-base text-slate-600 leading-relaxed">ReelDock looks up the reel you link to and gives you a
+                    direct MP4 download by simply entering the URL/Link of
+                    the content you want to save — no watermark, no
+                    re-encoding.</p>
+                  <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <li class="flex items-start gap-3 text-slate-700 font-semibold text-sm"><span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">✓</span> <span>Original quality without watermark or logo, exactly as the reel was posted.</span></li>
+                    <li class="flex items-start gap-3 text-slate-700 font-semibold text-sm"><span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">✓</span> <span>Save reels into the gallery of any device you want: mobile, iPhone, iPad, PC, or tablet.</span></li>
+                    <li class="flex items-start gap-3 text-slate-700 font-semibold text-sm"><span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">✓</span> <span>Download Instagram reels online by link using your browser: no software or app to install.</span></li>
+                    <li class="flex items-start gap-3 text-slate-700 font-semibold text-sm"><span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">✓</span> <span>It's always free. A short ad before each download is what keeps the service running.</span></li>
+                  </ul>
+                  <p class="text-sm text-slate-600 leading-relaxed pt-2">We do not require any information to access our tool, so
+                    you don't need to worry about providing your login
+                    details, and we do not charge anything for using our
+                    service. Nothing is stored on our servers — each video
+                    is fetched fresh the moment you ask for it.</p>
+                </div>
+                <div class="lg:col-span-5 flex flex-col items-center justify-center">
+                  <div class="relative group w-full max-w-sm lg:max-w-none">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500"></div>
+                    <div class="relative bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-white/60"><img src="./images/how-instagram-downloader-works.jpg" alt="How ReelDock Works on Smartphone and PC" width="500" height="500" loading="lazy" decoding="async" class="w-full h-auto rounded-xl object-cover shadow-sm group-hover:scale-[1.02] transition-transform duration-500"></div>
+                  </div>
+                  <span class="text-xs text-slate-400 mt-3 text-center font-medium">Save reels instantly with no watermark</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Two feature cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="glass-panel p-8 rounded-3xl shadow-sm border-l-4 border-l-indigo-600 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                <div>
+                  <div class="overflow-hidden rounded-2xl mb-6 bg-indigo-50/50 border border-indigo-100/60 relative aspect-[16/10]"><img src="./images/instagram-reels-video-downloader.jpg" alt="Fast and Free Instagram Reels Downloader Tool" width="400" height="250" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>
+                  <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+                    Reels Downloader</h3>
+                  <p class="text-sm text-slate-600 leading-relaxed">ReelDock lets you download an Instagram reel video fast
+                    and free; it takes just a few seconds to fetch the video
+                    from a link and save it straight into the gallery of your
+                    device. It's a super-fast tool that takes less time to
+                    download reels from Instagram.</p>
+                </div>
+              </div>
+              <div class="glass-panel p-8 rounded-3xl shadow-sm border-l-4 border-l-purple-600 flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
+                <div>
+                  <div class="overflow-hidden rounded-2xl mb-6 bg-purple-50/50 border border-purple-100/60 relative aspect-[16/10]"><img src="./images/instagram-content-formats.jpg" alt="Download Instagram Reels in MP4 Format" width="400" height="250" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>
+                  <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-600 inline-block"></span>
+                    Content Formats</h3>
+                  <p class="text-sm text-slate-600 leading-relaxed">Instagram doesn't allow you to download reels or any
+                    media content directly from the app. ReelDock helps you
+                    do that in high quality <b>MP4</b> video with a single
+                    click.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Why use -->
+            <div class="bg-indigo-50/50 border border-indigo-100 p-8 rounded-3xl shadow-sm">
+              <h3 class="text-2xl font-bold text-slate-900 mb-6 text-center">Why use ReelDock?</h3>
+              <p class="text-base text-slate-600 leading-relaxed text-center mb-8">As Instagram doesn't allow you to download reels directly
+                from the app or website online, here <strong>ReelDock</strong> web based tool helps you to do that in high quality formats.</p>
+              <div class="p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-indigo-100 text-center"><p class="text-sm text-slate-500 max-w-2xl mx-auto"><strong>Note:</strong> Downloaded video/audio cannot
+                be used for commercial purposes.</p></div>
+            </div>
+
+            <!-- FAQ -->
+            <div id="faq" class="space-y-8">
+              <div class="text-center mb-10">
+                <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h3>
+                <p class="text-slate-600">Everything you need to know about ReelDock</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Is ReelDock free to use?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">Yes. You watch a short ad before each download instead of paying — that's what keeps the tool running.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Do I need to log in to Instagram?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">No. You only need a link to a public reel. We never ask for your username or password.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Can I download from private accounts?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">No — only reels from public accounts can be resolved, by design.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Do you keep a copy of my downloads?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">No. Each request fetches the video at the moment you ask for it and nothing is retained afterward.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Why is there a wait before the file downloads?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">That's the ad. It's the only thing standing between this tool and a paywall.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Can I use the video commercially?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">No — the clip still belongs to whoever posted it. Downloading it here doesn't change that.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> What quality are the downloads?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">Whatever the reel's original resolution is, that's what you get — we don't re-encode or add a watermark.</p></div>
+                <div class="glass-panel p-6 rounded-2xl hover:bg-white/60 transition-all duration-300"><h4 class="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">?</span> Does it work on Android and iPhone?</h4> <p class="text-sm text-slate-600 leading-relaxed pl-9">Yes, the site is fully responsive and works in any mobile browser — no app installation needed.</p></div>
+              </div>
+            </div>
+
+            <!-- Legal panel -->
+            <div class="bg-slate-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full"></div>
+              <h3 class="text-2xl font-bold mb-4 flex items-center gap-2"><svg class="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                DMCA Compliance</h3>
+              <p class="text-sm text-slate-300 leading-relaxed">ReelDock complies with 17 U.S.C. § 512 and the Digital
+                Millennium Copyright Act (DMCA). It is our policy to respond
+                to any infringement notices and take appropriate actions. If
+                your copyrighted material has been posted on the site and you
+                want this material removed, please contact us.</p>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="border-t border-slate-200 bg-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12">
+        <div class="col-span-1 md:col-span-1">
+          <a href="/" class="flex items-center group mb-4">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-indigo-600 mr-1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 6H2M3 9H1" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+              <h2 class="text-xl font-black tracking-tighter text-slate-900 leading-none">Reel<span class="text-gradient">Dock</span></h2>
+            </div>
+          </a>
+          <p class="text-sm text-slate-600 leading-relaxed">ReelDock is a super-fast web based tool to download
+            Instagram reels in original quality — simple, fast, and free.</p>
+        </div>
+        <div class="col-span-1 md:col-span-2 flex flex-col md:flex-row gap-8 md:gap-16 md:justify-end">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 tracking-wider uppercase mb-4">Tool</h3>
+            <ul class="space-y-3">
+              <li><a href="/" class="text-sm text-slate-600 hover:text-indigo-600 transition-colors">Reels Downloader</a></li>
+              <li><a href="#how-it-works" class="text-sm text-slate-600 hover:text-indigo-600 transition-colors">How it works</a></li>
+              <li><a href="#faq" class="text-sm text-slate-600 hover:text-indigo-600 transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-xs text-slate-500 max-w-2xl text-center md:text-left"><b>ReelDock</b> is not connected to Instagram™ or any other
+          social platforms. We do not host or store files on our servers;
+          all content belongs to its original owners.<br><br>
+          Please do not use our tool for copyrighted or restricted content.
+          We comply with DMCA policies and respond to all valid infringement
+          notices.</p>
+        <p class="text-xs text-slate-500 whitespace-nowrap">© <span id="year"></span> ReelDock - All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Ad-gate modal: shown before every download -->
+<div id="ad-modal" class="ad-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ad-modal-title">
+  <div class="ad-modal-card">
+    <p id="ad-modal-title" class="ad-modal-title">Your download starts after this ad</p>
+
+    <!--
+      AD SLOT — swap the contents of #ad-slot for your real ad code in production.
+
+      Example (Google AdSense display unit, after your site is approved):
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+      Or paste the interstitial/banner snippet given to you by an ad
+      network such as Adsterra, PropellerAds, ExoClick, etc.
+      Leave the countdown UI (below) as-is — it's independent of the ad code.
+    -->
+    <div id="ad-slot" class="ad-slot">
+      <div class="fake-ad">
+        <span class="fake-ad-label">Advertisement</span>
+        <p>This is a placeholder ad for local testing.<br>Replace it with your real ad code before you go live.</p>
+      </div>
+    </div>
+
+    <div class="ad-progress-track">
+      <div id="ad-progress-fill" class="ad-progress-fill"></div>
+    </div>
+    <p id="ad-countdown-wrap" class="ad-countdown">Download unlocks in <span id="ad-countdown-num">10</span>s…</p>
+    <p id="ad-status" class="ad-countdown" hidden></p>
+    <button id="ad-cancel-btn" type="button" class="ad-cancel">Cancel</button>
+    <button id="ad-ready-btn" type="button" class="flex items-center justify-center gap-2 px-6 h-12 font-semibold rounded-full transition-all duration-300 bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] w-full mt-3" hidden>
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+      <span>Tap to download</span>
+    </button>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>

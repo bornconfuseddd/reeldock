@@ -1,0 +1,13 @@
+{
+  "name": "reeldock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ReelDock - Instagram Reels downloader",
+  "main": "local-server.js",
+  "scripts": {
+    "start": "node local-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
