@@ -105,7 +105,13 @@ async function handleDownload(url, res) {
     // ever offers one combined format anyway, this just picks that one —
     // no separate merge needed in that case, same result either way.
     "-f",
-    "bv*+ba/b",
+    // Prefer H.264 video ("avc1") specifically — Instagram sometimes
+    // offers VP9 as its best-quality option, which plays fine on PC
+    // browsers but iPhones largely can't decode VP9 at all (you get
+    // audio with no picture). H.264 is supported everywhere, so we ask
+    // for that first and only fall back to "whatever's best" if this
+    // particular Reel truly doesn't have an H.264 option.
+    "bv*[vcodec^=avc1]+ba/b[vcodec^=avc1]/bv*+ba/b",
     "--merge-output-format",
     "mp4",
     "-o",
