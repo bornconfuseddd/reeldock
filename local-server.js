@@ -46,7 +46,20 @@ function handleResolve(url, res) {
 
   execFile(
     YTDLP,
-    ["-j", "--no-warnings", reelUrl],
+    [
+      "-j",
+      "--no-warnings",
+      // Without this, yt-dlp's default picks the best *video-only*
+      // stream when a site (like Instagram) also offers a separate
+      // audio-only one — meant to be merged by a downloader, which we
+      // aren't doing. That produced a "video" with no sound on PC, and
+      // on iPhone, a broken-looking file with no thumbnail (since it's
+      // not a normal, complete video file). "best" forces a single
+      // format that already has both audio and video combined.
+      "-f",
+      "best",
+      reelUrl,
+    ],
     { maxBuffer: 1024 * 1024 * 20 },
     (err, stdout) => {
       if (err) {
