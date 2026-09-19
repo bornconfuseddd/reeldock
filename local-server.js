@@ -121,7 +121,12 @@ async function handleDownload(url, res) {
     // supported everywhere, so ask for that first, and only fall back
     // to "whatever's best" if a particular Reel truly has no H.264
     // option at all (the codec check right below catches that case).
-    "bv*[vcodec^=avc1]+ba/b[vcodec^=avc1]/bv*+ba/b",
+    // Also cap at 720p — most people are watching on a phone screen
+    // anyway, and requesting a smaller file from Instagram in the first
+    // place is what actually speeds up slow downloads (a smaller file
+    // fetches faster AND needs far less work to process afterward,
+    // versus fetching a huge file and shrinking it after the fact).
+    "bv*[vcodec^=avc1][height<=720]+ba/b[vcodec^=avc1][height<=720]/bv*[height<=720]+ba/b[height<=720]/bv*+ba/b",
     "--merge-output-format",
     "mp4",
     "-o",
@@ -188,7 +193,7 @@ async function handleDownload(url, res) {
           "-c:v", "libx264",
           "-preset", "ultrafast",
           "-threads", "1",
-          "-crf", "20", // high quality — this only controls file size/quality, not memory
+          "-crf", "24", // good-enough quality for a phone screen, smaller/faster than higher settings
           "-c:a", "copy", // audio already worked fine — don't touch it
           "-movflags", "+faststart",
           fixedPath,
