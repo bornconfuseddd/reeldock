@@ -24,17 +24,23 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
+const util = require("util");
 const { execFile } = require("child_process");
+const execFileAsync = util.promisify(execFile);
 
 const PORT = process.env.PORT || 8787;
 const ROOT = __dirname;
 const YTDLP = process.platform === "win32" ? "yt-dlp.exe" : "./yt-dlp";
 
-// If a local ffmpeg binary sits right next to this file (that's what our
-// Render Build Command downloads), tell yt-dlp exactly where it is.
-// Otherwise, leave it out and let yt-dlp look for one on the system PATH.
+// If local ffmpeg/ffprobe binaries sit right next to this file (that's
+// what our Render Build Command downloads), use them directly. Otherwise,
+// fall back to the plain command name and let the OS look on its PATH.
 const FFMPEG_PATH = path.join(ROOT, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+const FFPROBE_PATH = path.join(ROOT, process.platform === "win32" ? "ffprobe.exe" : "ffprobe");
 const HAS_LOCAL_FFMPEG = fs.existsSync(FFMPEG_PATH);
+const HAS_LOCAL_FFPROBE = fs.existsSync(FFPROBE_PATH);
+const FFMPEG_BIN = HAS_LOCAL_FFMPEG ? FFMPEG_PATH : (process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+const FFPROBE_BIN = HAS_LOCAL_FFPROBE ? FFPROBE_PATH : (process.platform === "win32" ? "ffprobe.exe" : "ffprobe");
 
 const MIME = {
   ".html": "text/html",
@@ -95,10 +101,14 @@ async function handleDownload(url, res) {
   const name = url.searchParams.get("name") || "reel.mp4";
   if (!reelUrl) return sendJson(res, 400, { message: "Missing src" });
 
-  const tempPath = path.join(os.tmpdir(), `reeldock-${crypto.randomUUID()}.mp4`);
-  const cleanup = () => fs.unlink(tempPath, () => {});
+  const rawPath = path.join(os.tmpdir(), `reeldock-${crypto.randomUUID()}-raw.mp4`);
+  const fixedPath = path.join(os.tmpdir(), `reeldock-${crypto.randomUUID()}-fixed.mp4`);
+  const cleanup = () => {
+    fs.unlink(rawPath, () => {});
+    fs.unlink(fixedPath, () => {});
+  };
 
-  const args = [
+  const ytdlpArgs = [
     "--no-warnings",
     "--no-progress",
     // Best video + best audio, merged into a single mp4. If a Reel only
@@ -107,48 +117,95 @@ async function handleDownload(url, res) {
     "-f",
     // Prefer H.264 video ("avc1") specifically — Instagram sometimes
     // offers VP9 as its best-quality option, which plays fine on PC
-    // browsers but iPhones largely can't decode VP9 at all (you get
-    // audio with no picture). H.264 is supported everywhere, so we ask
-    // for that first and only fall back to "whatever's best" if this
-    // particular Reel truly doesn't have an H.264 option.
+    // browsers but many phones can't decode VP9 at all. H.264 is
+    // supported everywhere, so ask for that first, and only fall back
+    // to "whatever's best" if a particular Reel truly has no H.264
+    // option at all (the codec check right below catches that case).
     "bv*[vcodec^=avc1]+ba/b[vcodec^=avc1]/bv*+ba/b",
     "--merge-output-format",
     "mp4",
     "-o",
-    tempPath,
+    rawPath,
   ];
-  if (HAS_LOCAL_FFMPEG) args.push("--ffmpeg-location", FFMPEG_PATH);
-  args.push(reelUrl);
+  if (HAS_LOCAL_FFMPEG) ytdlpArgs.push("--ffmpeg-location", FFMPEG_PATH);
+  ytdlpArgs.push(reelUrl);
 
-  execFile(YTDLP, args, { maxBuffer: 1024 * 1024 * 20 }, (err, _stdout, stderr) => {
-    if (err) {
-      console.error("yt-dlp download/merge failed:", err.message, stderr || "");
-      cleanup();
-      return sendJson(res, 502, {
-        message: "Couldn't download that video. The link may have expired — try fetching the Reel again.",
-      });
-    }
-
-    fs.stat(tempPath, (statErr, stats) => {
-      if (statErr || !stats || stats.size < 1024) {
-        cleanup();
-        return sendJson(res, 502, { message: "The downloaded file looks broken. Please try again." });
-      }
-
-      res.writeHead(200, {
-        "content-type": "video/mp4",
-        "content-length": stats.size,
-        "content-disposition": buildContentDisposition(name),
-      });
-
-      const readStream = fs.createReadStream(tempPath);
-      readStream.pipe(res);
-      readStream.on("close", cleanup);
-      readStream.on("error", (streamErr) => {
-        console.error("Error streaming merged file:", streamErr.message);
-        cleanup();
-      });
+  try {
+    await execFileAsync(YTDLP, ytdlpArgs, { maxBuffer: 1024 * 1024 * 20 });
+  } catch (err) {
+    console.error("yt-dlp download/merge failed:", err.message);
+    cleanup();
+    return sendJson(res, 502, {
+      message: "Couldn't download that video. The link may have expired — try fetching the Reel again.",
     });
+  }
+
+  const rawStats = await fs.promises.stat(rawPath).catch(() => null);
+  if (!rawStats || rawStats.size < 1024) {
+    cleanup();
+    return sendJson(res, 502, { message: "The downloaded file looks broken. Please try again." });
+  }
+
+  // Double-check what we actually got. If the H.264 preference above
+  // still ended up with something else (some Reels genuinely have no
+  // H.264 option), re-encode just the video track to H.264 so it plays
+  // everywhere — the audio is copied over untouched, so this doesn't
+  // re-process the part that already worked. Most Reels already come
+  // through as H.264 and skip this step entirely, so this doesn't slow
+  // those down at all.
+  let finalPath = rawPath;
+  try {
+    const { stdout: codecOut } = await execFileAsync(FFPROBE_BIN, [
+      "-v", "quiet",
+      "-select_streams", "v:0",
+      "-show_entries", "stream=codec_name",
+      "-of", "csv=p=0",
+      rawPath,
+    ]);
+    const vcodec = codecOut.trim();
+    console.log(`Downloaded video codec: ${vcodec || "unknown"}`);
+
+    if (vcodec && vcodec !== "h264") {
+      console.log(`Re-encoding video to H.264 for compatibility (was ${vcodec})...`);
+      await execFileAsync(
+        FFMPEG_BIN,
+        [
+          "-y", "-i", rawPath,
+          "-c:v", "libx264", "-preset", "veryfast",
+          "-c:a", "copy", // audio already worked fine — don't touch it
+          "-movflags", "+faststart",
+          fixedPath,
+        ],
+        { maxBuffer: 1024 * 1024 * 20 }
+      );
+      finalPath = fixedPath;
+    }
+  } catch (probeErr) {
+    // If the codec check or re-encode itself fails for some reason,
+    // fall back to serving the original file rather than failing the
+    // whole download outright — better a possibly-incompatible video
+    // than none at all.
+    console.error("Codec check/re-encode skipped:", probeErr.message);
+  }
+
+  const finalStats = await fs.promises.stat(finalPath).catch(() => null);
+  if (!finalStats || finalStats.size < 1024) {
+    cleanup();
+    return sendJson(res, 502, { message: "The downloaded file looks broken. Please try again." });
+  }
+
+  res.writeHead(200, {
+    "content-type": "video/mp4",
+    "content-length": finalStats.size,
+    "content-disposition": buildContentDisposition(name),
+  });
+
+  const readStream = fs.createReadStream(finalPath);
+  readStream.pipe(res);
+  readStream.on("close", cleanup);
+  readStream.on("error", (streamErr) => {
+    console.error("Error streaming file:", streamErr.message);
+    cleanup();
   });
 }
 
