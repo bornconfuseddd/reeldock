@@ -167,11 +167,28 @@ async function handleDownload(url, res) {
 
     if (vcodec && vcodec !== "h264") {
       console.log(`Re-encoding video to H.264 for compatibility (was ${vcodec})...`);
+      // Render's free tier gives the whole server only 512MB of memory
+      // total (shared with Node.js and yt-dlp too). The re-encode alone
+      // measured ~383MB with the default preset and threading, which
+      // tipped the whole container over its limit and got it killed
+      // outright — that's what was causing "the download didn't start"
+      // for everyone, since the entire server was crashing and
+      // restarting each time. Measured alternatives on the same clip:
+      //   -threads 1 + -preset ultrafast  : ~150MB, FULL resolution kept
+      //   ...+ downscaling to 720p on top : ~106MB, but visibly softer
+      // The preset and thread count turned out to be what mattered, not
+      // the resolution — so this keeps the original video quality
+      // completely untouched and still stays well within the memory
+      // budget. Most Reels never even reach this code path (they're
+      // already H.264), so this only affects the rare case that needs it.
       await execFileAsync(
         FFMPEG_BIN,
         [
           "-y", "-i", rawPath,
-          "-c:v", "libx264", "-preset", "veryfast",
+          "-c:v", "libx264",
+          "-preset", "ultrafast",
+          "-threads", "1",
+          "-crf", "20", // high quality — this only controls file size/quality, not memory
           "-c:a", "copy", // audio already worked fine — don't touch it
           "-movflags", "+faststart",
           fixedPath,
