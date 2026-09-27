@@ -30,7 +30,13 @@ const execFileAsync = util.promisify(execFile);
 
 const PORT = process.env.PORT || 8787;
 const ROOT = __dirname;
-const YTDLP = process.platform === "win32" ? "yt-dlp.exe" : "./yt-dlp";
+// yt-dlp: use a local downloaded copy if one exists right here (that's
+// how Render's Build Command sets it up, and how yt-dlp.exe works on
+// Windows), otherwise fall back to the plain command name and let the
+// OS find it on PATH (that's how it works when installed globally, e.g.
+// via "pip install yt-dlp" on Android/Termux).
+const YTDLP_LOCAL = path.join(ROOT, process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp");
+const YTDLP = fs.existsSync(YTDLP_LOCAL) ? YTDLP_LOCAL : "yt-dlp";
 
 // If local ffmpeg/ffprobe binaries sit right next to this file (that's
 // what our Render Build Command downloads), use them directly. Otherwise,
@@ -126,7 +132,7 @@ async function handleDownload(url, res) {
     // place is what actually speeds up slow downloads (a smaller file
     // fetches faster AND needs far less work to process afterward,
     // versus fetching a huge file and shrinking it after the fact).
-    "bv*[vcodec^=avc1][height<=720]+ba/b[vcodec^=avc1][height<=720]/bv*[height<=720]+ba/b[height<=720]/bv*+ba/b",
+    "bv*[vcodec^=avc1][height<=720]+ba/b[vcodec^=avc1][height<=720]/bv*[height<=720]+ba/b[height<=720]",
     "--merge-output-format",
     "mp4",
     "-o",
@@ -272,5 +278,6 @@ function buildContentDisposition(name) {
 
 server.listen(PORT, () => {
   console.log(`ReelDock test server running — open http://localhost:${PORT}`);
+  console.log(YTDLP === YTDLP_LOCAL ? `Using local yt-dlp at ${YTDLP}` : "No local yt-dlp found — relying on system PATH.");
   console.log(HAS_LOCAL_FFMPEG ? `Using local ffmpeg at ${FFMPEG_PATH}` : "No local ffmpeg found — relying on system PATH.");
 });
